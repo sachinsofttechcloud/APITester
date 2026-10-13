@@ -1,0 +1,380 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Enquiry Form + API Tester</title>
+<style>
+  :root{
+    --bg:#f5f6fa; --card:#fff; --ink:#1b1f2a; --muted:#6b7280; --line:#e3e6ee;
+    --brand:#4f46e5; --brand-ink:#fff; --ok:#16a34a; --warn:#d97706; --bad:#dc2626; --info:#2563eb;
+    --code:#0f172a; --code-ink:#e2e8f0;
+  }
+  @media (prefers-color-scheme:dark){
+    :root{ --bg:#0f1219; --card:#171b26; --ink:#e8ebf3; --muted:#98a1b3; --line:#262c3b; --brand:#818cf8; --brand-ink:#0f1219; }
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+  header{padding:22px 24px 6px;max-width:1200px;margin:0 auto}
+  header h1{margin:0;font-size:22px}
+  header p{margin:4px 0 0;color:var(--muted)}
+  main{max-width:1200px;margin:0 auto;padding:16px 24px 48px;display:grid;grid-template-columns:1fr 1fr;gap:20px}
+  @media(max-width:900px){main{grid-template-columns:1fr}}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:20px}
+  .card h2{margin:0 0 14px;font-size:16px}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .grid .full{grid-column:1/-1}
+  label{display:block;font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px;letter-spacing:.02em}
+  input,select,textarea{width:100%;padding:9px 11px;border:1px solid var(--line);border-radius:9px;background:transparent;color:var(--ink);font:inherit}
+  input:focus,select:focus,textarea:focus{outline:2px solid var(--brand);outline-offset:-1px}
+  textarea{resize:vertical;min-height:64px}
+  .err{color:var(--bad);font-size:12px;margin-top:3px;min-height:0}
+  .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:14px}
+  button{border:0;border-radius:9px;padding:10px 16px;font:inherit;font-weight:600;cursor:pointer;background:var(--brand);color:var(--brand-ink)}
+  button.sec{background:transparent;color:var(--ink);border:1px solid var(--line)}
+  button:disabled{opacity:.5;cursor:not-allowed}
+  .seg{display:inline-flex;border:1px solid var(--line);border-radius:9px;overflow:hidden}
+  .seg label{margin:0;padding:8px 12px;cursor:pointer;font-size:13px;color:var(--ink);font-weight:600}
+  .seg input{display:none}
+  .seg input:checked+span{color:var(--brand)}
+  .seg label:has(input:checked){background:color-mix(in srgb,var(--brand) 14%,transparent)}
+  .pill{display:inline-block;font-size:12px;padding:2px 9px;border-radius:99px;font-weight:600}
+  .pill.ok{background:color-mix(in srgb,var(--ok) 16%,transparent);color:var(--ok)}
+  .pill.bad{background:color-mix(in srgb,var(--bad) 16%,transparent);color:var(--bad)}
+  .pill.warn{background:color-mix(in srgb,var(--warn) 18%,transparent);color:var(--warn)}
+  .pill.idle{background:color-mix(in srgb,var(--muted) 18%,transparent);color:var(--muted)}
+  .verdict{border-left:4px solid var(--info);background:color-mix(in srgb,var(--info) 9%,transparent);padding:12px 14px;border-radius:8px;margin-bottom:14px}
+  .verdict.ok{border-color:var(--ok);background:color-mix(in srgb,var(--ok) 9%,transparent)}
+  .verdict.bad{border-color:var(--bad);background:color-mix(in srgb,var(--bad) 9%,transparent)}
+  .verdict.warn{border-color:var(--warn);background:color-mix(in srgb,var(--warn) 10%,transparent)}
+  .verdict b{display:block;margin-bottom:2px}
+  table{width:100%;border-collapse:collapse;font-size:14px}
+  td,th{padding:9px 6px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+  th{font-size:12px;color:var(--muted);font-weight:600}
+  td small{display:block;color:var(--muted);margin-top:2px}
+  pre{background:var(--code);color:var(--code-ink);padding:12px;border-radius:10px;overflow:auto;font-size:12.5px;max-height:260px;margin:8px 0 0;white-space:pre-wrap;word-break:break-word}
+  .note{font-size:12.5px;color:var(--muted);margin-top:8px}
+  details{margin-top:12px} summary{cursor:pointer;font-weight:600;font-size:13px}
+  .checks label{display:flex;gap:8px;align-items:center;font-size:13px;color:var(--ink);font-weight:500;margin:6px 0}
+  .checks input{width:auto}
+</style>
+</head>
+<body>
+<header>
+  <h1>Enquiry Form &amp; API Tester</h1>
+  <p>99acres &rarr; Bliss Realty CRM &middot; PUSH integration &middot; <code>POST /api/v1/integration/99acres</code></p>
+</header>
+
+<main>
+  <!-- ================= FORM ================= -->
+  <section class="card">
+    <h2>Enquiry form</h2>
+    <form id="form" novalidate>
+      <div class="grid">
+        <div><label for="name">Name *</label><input id="name" value="Himanshu Kumar"><div class="err" data-for="name"></div></div>
+        <div><label for="email">Email</label><input id="email" type="email" placeholder="optional"><div class="err" data-for="email"></div></div>
+        <div><label for="countryCode">Country code *</label><input id="countryCode" value="91"><div class="err" data-for="countryCode"></div></div>
+        <div><label for="mobile">Mobile *</label><input id="mobile" value="9988776655" inputmode="numeric"><div class="err" data-for="mobile"></div></div>
+        <div><label for="state">State</label><input id="state" value="Rajasthan"></div>
+        <div><label for="city">City</label><input id="city" value="Jaipur"></div>
+        <div class="full"><label for="location">Location</label><input id="location" value="GK Colony"></div>
+        <div><label for="project">Project</label><input id="project" value="Aamor"></div>
+        <div><label for="property">Property</label>
+          <select id="property"><option>Villa</option><option>Apartment</option><option>Plot</option><option>Commercial</option></select></div>
+        <div><label for="propertyType">Property type</label>
+          <select id="propertyType"><option>Flat</option><option>House</option><option>Plot</option><option>Office</option></select></div>
+        <div><label for="budget">Budget (INR)</label><input id="budget" value="5403192" inputmode="numeric"><div class="err" data-for="budget"></div></div>
+        <div><label for="leadExpectedBudget">Expected budget (INR)</label><input id="leadExpectedBudget" value="6000000" inputmode="numeric"><div class="err" data-for="leadExpectedBudget"></div></div>
+        <div><label for="leadStatus">Lead status</label><input id="leadStatus" value="Schedule Site Visit or Schedule Meeting"></div>
+        <div><label for="scheduledDate">Scheduled date-time</label><input id="scheduledDate" value="2023-07-28 05:29:51"><div class="err" data-for="scheduledDate"></div></div>
+        <div><label for="LeadId">Lead ID</label><input id="LeadId" placeholder="optional"></div>
+        <div><label for="subsource">Subsource</label><input id="subsource" placeholder="optional"></div>
+        <div class="full"><label for="callRecordingUrl">Call recording URL</label><input id="callRecordingUrl" placeholder="optional"><div class="err" data-for="callRecordingUrl"></div></div>
+        <div class="full"><label for="notes">Notes</label><textarea id="notes">comments</textarea></div>
+        <div class="full"><label for="addl">additionalProperties (JSON object)</label><textarea id="addl">{"key1":"value1","key2":"value1"}</textarea><div class="err" data-for="addl"></div></div>
+      </div>
+
+      <div class="row">
+        <button type="submit" id="submitBtn">Submit enquiry</button>
+        <button type="button" class="sec" id="viewBtn">Show payload</button>
+        <button type="button" class="sec" id="curlBtn">Copy cURL</button>
+      </div>
+      <pre id="payloadView" hidden></pre>
+    </form>
+
+    <details>
+      <summary>Connection settings</summary>
+      <div class="grid" style="margin-top:10px">
+        <div class="full"><label>Send via</label>
+          <div class="seg">
+            <label><input type="radio" name="mode" value="proxy" checked><span>Local relay (recommended)</span></label>
+            <label><input type="radio" name="mode" value="direct"><span>Direct from browser</span></label>
+          </div>
+          <div class="note">Direct mode only works if the CRM server allows CORS from this page. Relay mode calls the API from Node, so CORS can't block it and your API key stays out of the browser.</div>
+        </div>
+        <div class="full"><label for="url">Endpoint URL (used in direct mode; relay uses its own)</label>
+          <input id="url" value="https://api.realestatecrm.cloud/api/v1/integration/99acres"></div>
+        <div class="full"><label for="key">API key (direct mode only)</label>
+          <input id="key" type="password" placeholder="paste key here, never saved" autocomplete="off"></div>
+      </div>
+    </details>
+  </section>
+
+  <!-- ================= TESTER ================= -->
+  <section class="card">
+    <h2>Diagnostics</h2>
+    <div id="verdict" class="verdict"><b>No result yet</b>Submit the form or run the tests. The first failing check tells you where the problem is.</div>
+
+    <div class="checks">
+      <label><input type="checkbox" id="allowLive"> Include a live submit (creates a real lead in the CRM)</label>
+    </div>
+    <div class="row" style="margin-top:6px">
+      <button id="runBtn">Run all tests</button>
+      <span id="relayState" class="pill idle">relay: checking</span>
+    </div>
+
+    <table style="margin-top:14px">
+      <thead><tr><th style="width:34px"></th><th>Test</th><th style="width:90px">Result</th></tr></thead>
+      <tbody id="results"></tbody>
+    </table>
+
+    <details open>
+      <summary>Last request / response</summary>
+      <pre id="log">Nothing sent yet.</pre>
+    </details>
+  </section>
+</main>
+
+<script>
+(() => {
+  const $ = (id) => document.getElementById(id);
+  const URL_DEFAULT = $('url').value;
+  const fields = ['name','email','countryCode','mobile','state','city','location','project','property','propertyType',
+                  'budget','leadExpectedBudget','leadStatus','scheduledDate','LeadId','subsource','callRecordingUrl','notes'];
+  let relayUp = false;
+
+  /* ---------- payload ---------- */
+  const pad = (n) => String(n).padStart(2, '0');
+  function nowStamps() {
+    const d = new Date();
+    return {
+      submittedDate: `${pad(d.getDate())}-${pad(d.getMonth()+1)}-${pad(d.getFullYear()%100)}`, // DD-MM-YY like the sample
+      submittedTime: `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`
+    };
+  }
+  function buildPayload() {
+    const p = {};
+    fields.forEach(f => { p[f] = $(f).value.trim(); });
+    let extra = {};
+    try { extra = JSON.parse($('addl').value || '{}'); } catch { extra = {}; }
+    return { ...p, ...nowStamps(), additionalProperties: extra };
+  }
+
+  /* ---------- field validation (matches the sample payload's formats) ---------- */
+  function validate(p) {
+    const e = {};
+    if (!p.name) e.name = 'Name is required';
+    if (!/^\d{1,4}$/.test(p.countryCode)) e.countryCode = 'Digits only, e.g. 91 (no + sign)';
+    if (!/^\d{10}$/.test(p.mobile)) e.mobile = 'Mobile must be exactly 10 digits, no spaces or country code';
+    if (p.email && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(p.email)) e.email = 'Not a valid email';
+    ['budget','leadExpectedBudget'].forEach(k => { if (p[k] && !/^\d+$/.test(p[k])) e[k] = 'Digits only (no commas, ₹ or decimals)'; });
+    if (p.scheduledDate && !/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/.test(p.scheduledDate)) e.scheduledDate = 'Use YYYY-MM-DD HH:MM:SS';
+    if (p.callRecordingUrl && !/^https?:\/\//.test(p.callRecordingUrl)) e.callRecordingUrl = 'Must start with http:// or https://';
+    try { const o = JSON.parse($('addl').value || '{}'); if (o === null || typeof o !== 'object' || Array.isArray(o)) throw 0; }
+    catch { e.addl = 'Must be a valid JSON object'; }
+    return e;
+  }
+  function showErrors(e) {
+    document.querySelectorAll('.err').forEach(n => n.textContent = e[n.dataset.for] || '');
+  }
+
+  /* ---------- transport ---------- */
+  const mode = () => document.querySelector('input[name=mode]:checked').value;
+
+  async function send({ via = mode(), keyMode = 'default', body, method = 'POST', contentType = 'application/json' }) {
+    const rawBody = typeof body === 'string' ? body : JSON.stringify(body);
+    if (via === 'proxy') {
+      try {
+        const r = await fetch('/relay', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ method, rawBody, keyMode, contentType, key: $('key').value }) });
+        const out = await r.json();
+        return { ...out, via, request: { method, keyMode, contentType, rawBody } };
+      } catch (err) {
+        return { via, status: 0, relayDown: true, error: err.message, request: { method, keyMode, contentType, rawBody } };
+      }
+    }
+    // direct from browser
+    const headers = {};
+    if (contentType) headers['Content-Type'] = contentType;
+    if (keyMode !== 'none' && $('key').value) headers['API-Key'] = $('key').value;
+    const t0 = performance.now();
+    try {
+      const r = await fetch($('url').value, { method, headers, body: method === 'GET' ? undefined : rawBody });
+      const bodyText = await r.text();
+      return { via, status: r.status, statusText: r.statusText, elapsedMs: Math.round(performance.now()-t0),
+               contentType: r.headers.get('content-type') || '', bodyText,
+               request: { method, keyMode, contentType, rawBody, hadKey: !!headers['API-Key'] } };
+    } catch (err) {
+      // fetch throws TypeError for CORS blocks AND for DNS/offline/TLS failures; the browser hides which.
+      return { via, status: 0, browserBlocked: true, error: err.message, elapsedMs: Math.round(performance.now()-t0),
+               request: { method, keyMode, contentType, rawBody, hadKey: !!headers['API-Key'] } };
+    }
+  }
+
+  /* ---------- diagnosis: turn a raw result into "what is wrong" ---------- */
+  function diagnose(r) {
+    const body = (r.bodyText || '').slice(0, 300);
+    if (r.relayDown) return { level:'bad', title:'Local relay is not running',
+      detail:'Start it with "node proxy.js" in the enquiry-tester folder and open http://localhost:3000 (not the file directly).' };
+    if (r.status === 0 && r.browserBlocked) return { level:'bad', title:'Browser could not complete the request (most likely CORS)',
+      detail:'The browser sent a preflight (OPTIONS) because of the custom API-Key header and the server did not allow this origin, or the network/DNS/TLS failed. The browser hides which one. Switch to "Local relay": if that works, the API is fine and CORS was the problem. Real fix for a web frontend: call the API from your Express backend (port 5000), never from React.' };
+    if (r.status === 0) return { level:'bad', title:'Request never reached the API',
+      detail:`Network error from the relay: ${r.error || 'unknown'}${r.errorCode ? ' ('+r.errorCode+')' : ''}. Check internet/DNS/firewall, or that the endpoint host is spelled correctly.` };
+    const s = r.status;
+    if (s >= 200 && s < 300) return { level:'ok', title:`Accepted (${s})`, detail: body ? 'Response: '+body : 'The CRM accepted the lead.' };
+    if (s === 401) return { level:'bad', title:'401 Unauthorized: API key rejected or missing',
+      detail:'Header must be exactly "API-Key: <key>" (not Authorization/Bearer, not x-api-key). Check for a stray space or newline in the key and that the key is active for this client.' };
+    if (s === 403) return { level:'bad', title:'403 Forbidden: key valid but not allowed',
+      detail:'The key may be disabled, or the integration is not enabled / your IP is not allow-listed. Contact the CRM admin (admin@realestatecrm.cloud).' };
+    if (s === 404) return { level:'bad', title:'404 Not Found: wrong URL',
+      detail:'Endpoint should be https://api.realestatecrm.cloud/api/v1/integration/99acres (no trailing path, https not http).' };
+    if (s === 405) return { level:'bad', title:'405 Method Not Allowed', detail:'This endpoint accepts POST only.' };
+    if (s === 415) return { level:'bad', title:'415 Unsupported Media Type', detail:'Send Content-Type: application/json.' };
+    if (s === 400 || s === 422) return { level:'warn', title:`${s} Validation error: the payload was rejected`,
+      detail:'Key and URL are fine; a field is wrong. Server said: ' + (body || '(empty body)') + '. Usual suspects: mobile not 10 digits, countryCode with "+", budget with commas, wrong date format.' };
+    if (s === 429) return { level:'warn', title:'429 Rate limited', detail:'Too many requests. Wait and retry.' };
+    if (s >= 500) return { level:'bad', title:`${s} Server error on the CRM side`,
+      detail:'Not your code. Capture the response below and send it with the timestamp to the CRM admin. ' + (body ? 'Body: ' + body : '') };
+    return { level:'warn', title:`Unexpected status ${s}`, detail: body };
+  }
+
+  /* ---------- UI helpers ---------- */
+  function setVerdict(d) {
+    const v = $('verdict'); v.className = 'verdict ' + (d.level === 'ok' ? 'ok' : d.level === 'bad' ? 'bad' : d.level === 'warn' ? 'warn' : '');
+    v.innerHTML = ''; const b = document.createElement('b'); b.textContent = d.title; v.appendChild(b);
+    v.appendChild(document.createTextNode(d.detail));
+  }
+  function mask(s) { return String(s).replace(/(API-Key"?:?\s*"?)([A-Za-z0-9_\-]{6})[A-Za-z0-9_\-]+/g, '$1$2…'); }
+  function logResult(r) {
+    const req = r.request || {};
+    const lines = [
+      `${req.method || 'POST'} ${r.via === 'proxy' ? '(via relay)' : $('url').value}`,
+      `API-Key header: ${req.keyMode === 'none' ? 'NOT SENT' : req.keyMode === 'custom' ? 'custom/wrong key' : (r.via === 'proxy' ? 'added by relay' : (req.hadKey ? 'sent (hidden)' : 'MISSING: paste key in settings'))}`,
+      `Content-Type: ${req.contentType || '(none)'}`,
+      '', 'Request body:', req.rawBody || '(empty)', '',
+      `Response: ${r.status}${r.statusText ? ' ' + r.statusText : ''}   ${r.elapsedMs != null ? r.elapsedMs + ' ms' : ''}`,
+      r.contentType ? 'Response type: ' + r.contentType : '',
+      r.error ? 'Error: ' + r.error + (r.errorCode ? ' (' + r.errorCode + ')' : '') : '',
+      (r.bodyText || '').slice(0, 2000)
+    ].filter(x => x !== '');
+    $('log').textContent = mask(lines.join('\n'));
+  }
+
+  /* ---------- submit ---------- */
+  $('form').addEventListener('submit', async (ev) => {
+    ev.preventDefault();
+    const p = buildPayload(); const e = validate(p); showErrors(e);
+    if (Object.keys(e).length) { setVerdict({ level:'warn', title:'Fix the highlighted fields first', detail:'Local validation failed, nothing was sent.' }); return; }
+    const btn = $('submitBtn'); btn.disabled = true; btn.textContent = 'Sending…';
+    const r = await send({ body: p });
+    logResult(r); setVerdict(diagnose(r));
+    btn.disabled = false; btn.textContent = 'Submit enquiry';
+  });
+  $('viewBtn').onclick = () => { const v = $('payloadView'); v.hidden = !v.hidden; v.textContent = JSON.stringify(buildPayload(), null, 2); };
+  $('curlBtn').onclick = async () => {
+    const cmd = `curl --location --request POST '${URL_DEFAULT}' \\\n  -H 'API-Key: <YOUR_KEY>' \\\n  -H 'Content-Type: application/json' \\\n  -d '${JSON.stringify(buildPayload())}'`;
+    try { await navigator.clipboard.writeText(cmd); $('curlBtn').textContent = 'Copied'; } catch { $('payloadView').hidden = false; $('payloadView').textContent = cmd; }
+    setTimeout(() => $('curlBtn').textContent = 'Copy cURL', 1500);
+  };
+
+  /* ---------- test suite ---------- */
+  const tests = [
+    { id:'payload', name:'Payload formats', hint:'Mobile, country code, budget, dates, JSON',
+      run: async () => { const p = buildPayload(); const e = validate(p); showErrors(e); const k = Object.keys(e);
+        return k.length ? { s:'fail', msg:'Fix: ' + k.join(', ') } : { s:'pass', msg:'All formats match the sample' }; } },
+    { id:'relay', name:'Local relay reachable', hint:'node proxy.js running on this page\'s origin',
+      run: async () => { await pingRelay(); return relayUp ? { s:'pass', msg:'Relay up' } : { s:'fail', msg:'Run: node proxy.js' }; } },
+    { id:'direct', name:'Browser can call API directly (CORS)', hint:'Fails when the server blocks this origin; harmless: no key, empty body',
+      run: async () => { const r = await send({ via:'direct', keyMode:'none', body:'{}' });
+        if (r.status === 0) return { s:'fail', msg:'Blocked (CORS/network)', r };
+        return { s:'pass', msg:`Reachable (${r.status})`, r }; } },
+    { id:'nokey', name:'API rejects a request with no key', hint:'Expect 401/403: proves the key is enforced',
+      needsRelay:true, run: async () => { const r = await send({ via:'proxy', keyMode:'none', body:{} });
+        if (r.status === 401 || r.status === 403) return { s:'pass', msg:`${r.status} as expected`, r };
+        if (r.status === 0) return { s:'fail', msg:'No response', r };
+        return { s:'warn', msg:`Got ${r.status}; key may not be enforced`, r }; } },
+    { id:'badkey', name:'API rejects a wrong key', hint:'Expect 401/403',
+      needsRelay:true, run: async () => { const r = await send({ via:'proxy', keyMode:'custom', body:{} , method:'POST' });
+        // custom mode sends the (usually empty) key field; force a clearly wrong one
+        const r2 = await fetch('/relay', { method:'POST', headers:{'Content-Type':'application/json'},
+          body: JSON.stringify({ method:'POST', rawBody:'{}', keyMode:'custom', key:'wrong-key-for-testing', contentType:'application/json' }) }).then(x=>x.json()).catch(()=>null);
+        const rr = r2 ? { ...r2, request:{ method:'POST', keyMode:'custom', contentType:'application/json', rawBody:'{}' } } : r;
+        if (rr.status === 401 || rr.status === 403) return { s:'pass', msg:`${rr.status} as expected`, r:rr };
+        if (rr.status === 0) return { s:'fail', msg:'No response', r:rr };
+        return { s:'warn', msg:`Got ${rr.status}`, r:rr }; } },
+    { id:'valid', name:'Real key, empty body gives a validation error (not auth)', hint:'Confirms YOUR key works; 400/422 = key OK, 401/403 = key bad',
+      needsRelay:true, run: async () => { const r = await send({ via:'proxy', keyMode:'default', body:{} });
+        if (r.status === 401 || r.status === 403) return { s:'fail', msg:`${r.status}: key rejected`, r };
+        if (r.status === 0) return { s:'fail', msg:'No response', r };
+        if (r.status >= 500) return { s:'fail', msg:`${r.status} server error`, r };
+        return { s:'pass', msg:`Key accepted (${r.status})`, r }; } },
+    { id:'live', name:'Live submit with current form data', hint:'Needs the checkbox above; creates a real lead',
+      needsRelay:true, live:true, run: async () => { const p = buildPayload(); const e = validate(p);
+        if (Object.keys(e).length) return { s:'fail', msg:'Form invalid, not sent' };
+        const r = await send({ via:'proxy', keyMode:'default', body:p });
+        if (r.status >= 200 && r.status < 300) return { s:'pass', msg:`Accepted (${r.status})`, r };
+        return { s:'fail', msg:`${r.status || 'No response'}`, r }; } },
+  ];
+
+  const ICON = { idle:'○', run:'…', pass:'✓', fail:'✗', warn:'!', skip:'–' };
+  const PILL = { idle:'idle', run:'idle', pass:'ok', fail:'bad', warn:'warn', skip:'idle' };
+  function renderRows(state = {}) {
+    const tb = $('results'); tb.innerHTML = '';
+    tests.forEach(t => {
+      const st = state[t.id] || { s:'idle', msg:'' };
+      const tr = document.createElement('tr');
+      const c1 = document.createElement('td'); c1.textContent = ICON[st.s];
+      const c2 = document.createElement('td'); c2.textContent = t.name;
+      const sm = document.createElement('small'); sm.textContent = st.msg || t.hint; c2.appendChild(sm);
+      const c3 = document.createElement('td'); const pill = document.createElement('span');
+      pill.className = 'pill ' + PILL[st.s]; pill.textContent = st.s === 'idle' ? 'pending' : st.s; c3.appendChild(pill);
+      tr.append(c1, c2, c3); tb.appendChild(tr);
+    });
+  }
+
+  async function runAll() {
+    $('runBtn').disabled = true; const state = {}; renderRows(state);
+    let worst = null;
+    for (const t of tests) {
+      if (t.live && !$('allowLive').checked) { state[t.id] = { s:'skip', msg:'Skipped: tick the live-submit box to run' }; renderRows(state); continue; }
+      if (t.needsRelay && !relayUp) { state[t.id] = { s:'skip', msg:'Skipped: relay not running' }; renderRows(state); continue; }
+      state[t.id] = { s:'run', msg:'Running…' }; renderRows(state);
+      let res; try { res = await t.run(); } catch (err) { res = { s:'fail', msg:err.message }; }
+      state[t.id] = res; renderRows(state);
+      if (res.r) logResult(res.r);
+      if (!worst && (res.s === 'fail')) worst = { t, res };
+    }
+    if (worst) {
+      const d = worst.res.r ? diagnose(worst.res.r) : { level:'bad', title:'Failed: ' + worst.t.name, detail: worst.res.msg };
+      if (worst.t.id === 'direct') d.detail = diagnose(worst.res.r).detail;
+      setVerdict({ ...d, title:`Problem found at "${worst.t.name}": ${d.title}` });
+    } else {
+      setVerdict({ level:'ok', title:'All executed checks passed', detail:'Skipped checks (if any) need the relay or the live-submit box. If your own app still fails while these pass, the difference is in how that app sends the request: compare its headers and body with the log below.' });
+    }
+    $('runBtn').disabled = false;
+  }
+  $('runBtn').onclick = runAll;
+
+  async function pingRelay() {
+    try { const r = await fetch('/health'); relayUp = r.ok; } catch { relayUp = false; }
+    const el = $('relayState'); el.className = 'pill ' + (relayUp ? 'ok' : 'bad'); el.textContent = 'relay: ' + (relayUp ? 'up' : 'not running');
+    if (!relayUp && location.protocol === 'file:') el.textContent = 'relay: open via http://localhost:3000';
+  }
+
+  renderRows(); pingRelay();
+  // If the relay is up, default to it; otherwise default to direct so the form still does something.
+  setTimeout(() => { if (!relayUp) document.querySelector('input[name=mode][value=direct]').checked = true; }, 400);
+})();
+</script>
+</body>
+</html>
